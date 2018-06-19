@@ -6,6 +6,7 @@ import csv
 import time
 import datetime
 import threading
+import SteamEngine
 
 ### FUNCTIONS
 
@@ -22,8 +23,6 @@ def chunkIt(seq, num):
 
 ### PARSE STEAM APPS
 
-search_url = "https://en.wikipedia.org/w/api.php"
-
 inputfilename = input("Input Steam file name: ")
 inputfile = open(inputfilename, mode="rb")
 
@@ -32,8 +31,8 @@ steamapps_json = json.load(inputfile)
 steamapps = []
 
 for steamapp_json in steamapps_json["applist"]["apps"]:
-    steamapp = steamapp_json["name"]
-    steamapps.append(steamapp)
+    # change to "name" below if using original research function
+    steamapps.append(steamapp_json)
 
 inputfile.close()
 
@@ -55,48 +54,14 @@ def researchThread(threadapps):
     global appcount
     
     for steamapp in threadapps:
-        # Default
-        engine = "Unknown"
-
-        try:
-            # Search so Wikipedia can find us the correct page
-            # Using fuzzy search terms like "<GAME NAME> video game"
-            searchterm = steamapp + " video game"
-            params = {
-                "action": "query",
-                "list": "search",
-                "srsearch": searchterm,
-                "srlimit": 1,
-                "srprop": "",
-                "formatversion": 2,
-                "format": "json"
-            }
-            url = search_url + "?" + urllib.parse.urlencode(params)
-            req = urllib.request.Request(
-                url,
-                headers = {
-                    "User-Agent": "SteamEngine/1.0 (https://SteamEngine.com; SteamEngine@SteamEngine.com)"
-                    }
-                )
-            response = urllib.request.urlopen(req).read()
-            pagename = json.loads(response)["query"]["search"][0]["title"]
-
-            # Use wptools to parse page and get engine info from infobox
-            page = wptools.page(pagename, verbose=False, silent=True)
-            # Get engine info: [[Engine Wikipedia page|Engine name]]
-            # Trim string off: Engine Wikipedia page|Engine name
-            enginelink = page.get_parse().data["infobox"]["engine"][:-2][2:]
-            # Split string: "Engine Wikipedia page", "Engine name"
-            enginelink_components = enginelink.split("|")
-            # Take the last string, not 1, since some might not be links: Engine name
-            engine = enginelink_components[-1]
-        except:
-            pass
+        engine, source = SteamEngine.research_engine(steamapp["appid"], steamapp["name"])
 
         gameengines.append(
             {
-                "game": steamapp,
-                "engine": engine
+                "id": steamapp["appid"],
+                "name": steamapp["name"],
+                "engine": engine,
+                "source": source
                 }
             )
 
@@ -130,10 +95,10 @@ print("Exporting to engines.csv... ", end="")
 
 outputfile = open("engines.csv", "w", newline="", encoding="utf-8")
 writer = csv.writer(outputfile, delimiter=",")
-writer.writerow(["Game", "Engine"])
+writer.writerow(["Game ID", "Game Name", "Engine", "Source"])
 
 for gameengine in gameengines:
-    writer.writerow([gameengine["game"], gameengine["engine"]])
+    writer.writerow([gameengine["id"], gameengine["name"], gameengine["engine"], gameengine["source"]])
     
 outputfile.close()
 
