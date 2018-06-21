@@ -70,7 +70,7 @@ def researchThread(threadapps):
         eta_seconds = (current_time - start_time) / appcount * (limit - appcount)
         eta = str(datetime.timedelta(seconds=eta_seconds)).split(".")[0]
         print(str(appcount) + " out of " + str(limit) + " apps researched. ("
-              + str(int(appcount/limit*100)) + "%, time remaining " + eta + ")")
+              + str(int(appcount/limit*100)) + "%, time remaining " + eta + ")\n", end="")
 
 gameengines = []
 appcount = 0
@@ -81,6 +81,7 @@ threadsapps = chunkIt(limitedsteamapps, threadcount)
 threads = []
 for threadapps in threadsapps:
     thread = threading.Thread(target=researchThread, args=[threadapps])
+    thread.daemon = True
     thread.start()
     threads.append(thread)
 
