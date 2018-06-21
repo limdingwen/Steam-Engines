@@ -41,6 +41,12 @@ print("Done.")
 ### GET ENGINES
 
 print("There are " + str(len(steamapps)) + " Steam apps in total.")
+start = int(input("How many have you researched already? "))
+mode = ""
+while True:
+    mode = input("Continue current engines.csv or create new? (continue/create) ")
+    if mode == "continue" or mode == "create":
+        break
 limit = int(input("How many do you want to research? (Type 0 for max) "))
 if limit == 0:
     limit = len(steamapps)
@@ -87,7 +93,7 @@ gameengines = []
 appcount = 0
 start_time = time.time()
 
-limitedsteamapps = steamapps[:limit]
+limitedsteamapps = steamapps[start:][:limit]
 threadsapps = chunkIt(limitedsteamapps, threadcount)
 threads = []
 for threadapps in threadsapps:
@@ -105,9 +111,15 @@ print("\nDone.")
 
 print("Exporting to engines.csv... ", end="")
 
-outputfile = open("engines.csv", "w", newline="", encoding="utf-8")
+file_mode = ""
+if mode == "continue":
+    file_mode = "a"
+elif mode == "create":
+    file_mode = "w"
+outputfile = open("engines.csv", file_mode, newline="", encoding="utf-8")
 writer = csv.writer(outputfile, delimiter=",")
-writer.writerow(["Game ID", "Game Name", "Engine", "Source"])
+if mode == "create":
+    writer.writerow(["Game ID", "Game Name", "Engine", "Source"])
 
 for gameengine in gameengines:
     writer.writerow([gameengine["id"], gameengine["name"], gameengine["engine"], gameengine["source"]])

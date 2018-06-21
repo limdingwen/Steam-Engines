@@ -316,7 +316,7 @@ def research_engine(steamid, steamname):
         threadsleft -= 1
         if engine is None:
             if threadsleft == 0:
-                return "Unavaliable", "Unknown"
+                return "Unknown", "Unavaliable"
         else:
             for thread_kill_sig in thread_kill_sigs:
                 thread_kill_sig = True
