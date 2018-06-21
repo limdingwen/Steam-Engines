@@ -67,10 +67,21 @@ def researchThread(threadapps):
 
         appcount += 1
         current_time = time.time()
-        eta_seconds = (current_time - start_time) / appcount * (limit - appcount)
+        passed_time = current_time - start_time
+        eta_seconds = passed_time / appcount * (limit - appcount)
         eta = str(datetime.timedelta(seconds=eta_seconds)).split(".")[0]
-        print(str(appcount) + " out of " + str(limit) + " apps researched. ("
-              + str(int(appcount/limit*100)) + "%, time remaining " + eta + ")\n", end="")
+
+        requeststring = ""
+        for source in SteamEngine.requestcounters:
+            requeststring += (source + ": "
+                  + str(int(SteamEngine.requestcounters[source] / passed_time))
+                  + "req/s   ")
+        
+        print("\n\n" + str(appcount)
+              + " out of " + str(limit) + " apps researched. ("
+              + str(int(appcount/limit*100))
+              + "%, time remaining " + eta + ")\n"
+              + requeststring, end="")
 
 gameengines = []
 appcount = 0
@@ -88,7 +99,7 @@ for threadapps in threadsapps:
 for thread in threads:
     thread.join()
 
-print("Done.")
+print("\nDone.")
 
 ### EXPORT TO CSV
 

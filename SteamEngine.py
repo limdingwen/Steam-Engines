@@ -7,6 +7,18 @@ from bs4 import BeautifulSoup
 import queue
 import threading
 #import mwparserfromhell
+from contextlib import contextmanager
+import sys, os
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stderr
+        sys.stderr = devnull
+        try:  
+            yield
+        finally:
+            sys.stderr = old_stdout
 
 header = {
     "User-Agent": "SteamEngine/1.0 (https://SteamEngine.com; SteamEngine@SteamEngine.com)"
@@ -40,45 +52,46 @@ def wikipedia(steamappfull, killsig):
     
     def get_engine_from_wppage(pagename):
             # Use wptools to parse page and get engine info from infobox
-            page = wptools.page(pagename, verbose=False, silent=True)
-            
-            # Get engine info: [[Engine Wikipedia page|Engine name]]
-            # Trim string off: Engine Wikipedia page|Engine name
-            #enginelink = page.get_parse().data["infobox"]["engine"][:-2][2:]
-            # Split string: "Engine Wikipedia page", "Engine name"
-            #enginelink_components = enginelink.split("|")
-            # Take the last string, not 1, since some might not be links: Engine name
-            #return enginelink_components[-1]
+            with suppress_stdout():
+                page = wptools.page(pagename, verbose=False, silent=True)
+                
+                # Get engine info: [[Engine Wikipedia page|Engine name]]
+                # Trim string off: Engine Wikipedia page|Engine name
+                #enginelink = page.get_parse().data["infobox"]["engine"][:-2][2:]
+                # Split string: "Engine Wikipedia page", "Engine name"
+                #enginelink_components = enginelink.split("|")
+                # Take the last string, not 1, since some might not be links: Engine name
+                #return enginelink_components[-1]
 
-            # Test cases
-            
-            # Crysis
-            # [[CryEngine 2]] {{small|(PC)}} <br>[[CryEngine 3]] {{small|(PS3 & X360)}}
-            # Testing complicated
-            
-            # Cities: Skylines
-            # [[Unity (game engine)|Unity]]
-            # Testing edited link names
-            
-            # Star Conflict
-            # Hammer Engine
-            # Testing no links
-            
-            engine = page.get_parse().data["infobox"]["engine"]
-            debugprint(engine)
-            # CryEngine 2]] {{small|(PC)}} <br>[[CryEngine 3]] {{small|(PS3 & X360)}}
-            # Unity (game engine)|Unity]]
-            # Hammer Engine
-            engine = engine.split("[[", 1)[-1]
-            # CryEngine 2
-            # Unity (game engine)|Unity
-            # Hammer Engine
-            engine = engine.split("]]")[0]
-            # CryEngine 2
-            # Unity
-            # Hammer Engine
-            engine = engine.split("|", 1)[-1]
-            return engine
+                # Test cases
+                
+                # Crysis
+                # [[CryEngine 2]] {{small|(PC)}} <br>[[CryEngine 3]] {{small|(PS3 & X360)}}
+                # Testing complicated
+                
+                # Cities: Skylines
+                # [[Unity (game engine)|Unity]]
+                # Testing edited link names
+                
+                # Star Conflict
+                # Hammer Engine
+                # Testing no links
+                
+                engine = page.get_parse().data["infobox"]["engine"]
+                debugprint(engine)
+                # CryEngine 2]] {{small|(PC)}} <br>[[CryEngine 3]] {{small|(PS3 & X360)}}
+                # Unity (game engine)|Unity]]
+                # Hammer Engine
+                engine = engine.split("[[", 1)[-1]
+                # CryEngine 2
+                # Unity (game engine)|Unity
+                # Hammer Engine
+                engine = engine.split("]]")[0]
+                # CryEngine 2
+                # Unity
+                # Hammer Engine
+                engine = engine.split("|", 1)[-1]
+                return engine
     
     # steamapp is app name.
     steamapp = steamappfull["name"]
